@@ -63,7 +63,7 @@
 
 Works like the Fishing button from the addon, but as an in-game macro.
 ```lua
-/run local n=FishingVolume.GetItemName(GetInventoryItemLink("player",16)) if not (n and string.find(n,"Pole")) then FishingVolume:EquipPole() else CastSpellByName("Fishing") end
+run if FishingVolume.IsPole(GetInventoryItemLink("player",16)) then CastSpellByName("Fishing") else FishingVolume:EquipPole() end
 ```
 <br>
 
@@ -80,3 +80,4 @@ Credits
 
 Built specifically for the 1.12.1 WoW client.
 Happy fishing!
+
