@@ -48,6 +48,22 @@ end
 FishingVolume.GetSetting  = GetSetting
 FishingVolume.SetSetting  = SetSetting
 FishingVolume.GetItemName = GetItemName
+
+-- Canne : nom contenant "Pole" OU sous-type d'objet "Fishing Pole"
+local function IsPole(link)
+    if not link then return false end
+    local name = GetItemName(link)
+    if name and (string.find(name, "Pole") or string.find(name, "Fishing Rod")) then return true end
+    local _, _, id = string.find(link, "item:(%d+)")
+    if id then
+        local _, _, _, _, itemType, itemSubType = GetItemInfo(tonumber(id))
+        if itemSubType == "Fishing Pole" then return true end
+    end
+    return false
+end
+FishingVolume.IsPole = IsPole
+
+
 FishingVolume.defaults    = defaults
 
 FishingVolume.sessionFish   = 0
@@ -84,7 +100,7 @@ local LURE_PRIORITY = {
     "Flesh Eating Worm",
     "Bright Baubles",
     "Nightcrawlers",
-    "Shiny Baubles",
+    "Shiny Bauble",
 }
 
 function FishingVolume:ApplyBestLure()
@@ -108,24 +124,24 @@ end
 function FishingVolume:EquipPole()
     local mhLink = GetInventoryItemLink("player", 16)
     local ohLink = GetInventoryItemLink("player", 17)
-    local mhName = GetItemName(mhLink)
 
-    if mhName and not string.find(mhName, "Pole") then
+    if mhLink and not IsPole(mhLink) then
         SetSetting("savedMainHand", mhLink)
-        SetSetting("savedOffHand",  ohLink)
+        SetSetting("savedOffHand", ohLink)
     end
 
     for bag = 0, 4 do
         local slots = GetContainerNumSlots(bag)
         for slot = 1, slots do
-            local name = GetItemName(GetContainerItemLink(bag, slot))
-            if name and string.find(name, "Pole") then
+            local link = GetContainerItemLink(bag, slot)
+            if link and IsPole(link) then
                 UseContainerItem(bag, slot)
-                DEFAULT_CHAT_FRAME:AddMessage("|cff33cc99FishingVolume:|r Equipped: " .. name .. ".")
+                DEFAULT_CHAT_FRAME:AddMessage("|cff33cc99FishingVolume:|r Equipped: " .. GetItemName(link) .. ".")
                 return
             end
         end
     end
+    DEFAULT_CHAT_FRAME:AddMessage("|cffff0000FishingVolume:|r No fishing pole found in bags.")
 end
 
 function FishingVolume:EquipWeapons()
@@ -206,9 +222,7 @@ end)
 local function TriggerRecast()
     if not GetSetting("autoRecast") or FishingVolume.intentionalSwap then return end
     
-    local mhLink = GetInventoryItemLink("player", 16)
-    local mhName = GetItemName(mhLink)
-    if mhName and string.find(mhName, "Pole") then
+    if IsPole(GetInventoryItemLink("player", 16)) then
         lastFishActivity = GetTime()
         recastOverlay:Show()
     end
@@ -221,9 +235,7 @@ local function UpdateOverlayVisibility(dt)
     if overlayCheckElapsed < 0.5 then return end
     overlayCheckElapsed = 0
 
-    local mhLink = GetInventoryItemLink("player", 16)
-    local mhName = GetItemName(mhLink)
-    local hasPole = mhName and string.find(mhName, "Pole")
+    local hasPole = IsPole(GetInventoryItemLink("player", 16))
     if not hasPole or (GetTime() - lastFishActivity > 10) or UnitAffectingCombat("player") then
         recastOverlay:Hide()
     end
@@ -383,3 +395,4 @@ SlashCmdList["FV"] = function(msg)
     if not FishingVolumeFrame then return end
     if FishingVolumeFrame:IsVisible() then FishingVolumeFrame:Hide() else FishingVolumeFrame:Show() end
 end
+
