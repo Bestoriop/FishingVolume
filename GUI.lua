@@ -14,7 +14,7 @@ local lureCountDirty = true
 local function GetLureCount()
     if not lureCountDirty then return cachedLureCount end
     lureCountDirty = false
-    local lures = { "Shiny Bauble", "Nightcrawlers", "Aquadynamic Fish Attractor", "Bright Baubles", "Fleshless Bone", "Aquadynamic Fish Lens" }
+        local lures = { "Shiny Bauble", "Nightcrawlers", "Aquadynamic Fish Attractor", "Bright Baubles", "Flesh Eating Worm", "Fleshless Bone", "Aquadynamic Fish Lens" }
     local count = 0
     for bag = 0, 4 do
         local slots = GetContainerNumSlots(bag)
@@ -180,9 +180,7 @@ end
 function UpdateUtilityButtons(frame)
     if not frame.fishBtn or not frame.lureBtn then return end
 
-    local mhLink = GetInventoryItemLink("player", 16)
-    local mhName = FishingVolume.GetItemName(mhLink)
-    local hasPole    = mhName and string.find(mhName, "Pole")
+    local hasPole = FishingVolume.IsPole(GetInventoryItemLink("player", 16))
     local lureCount  = GetLureCount()
 
     local goldR, goldG, goldB = 1.0, 0.82, 0
@@ -1343,3 +1341,4 @@ function FishingVolume_ToggleZonesFrame()
         FVZonesFrame:Show()
     end
 end
+
